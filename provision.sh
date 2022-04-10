@@ -8,3 +8,7 @@ sudo apt install nginx
 python3 -m venv .venv
 python3 -m pip install Django
 python3 -m pip install uwsgi
+
+
+#export PATH=$PATH:$HOME/.local/bin
+sudo ln -s /home/pi/chrace/racing/racing_nginx.conf /etc/nginx/sites-enabled/racing_nginx.conf
