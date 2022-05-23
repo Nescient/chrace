@@ -19,7 +19,13 @@ class Driver(models.Model):
 
    # a better way to represent drivers
    def __str__(self):
-      return f'{self.first_name.capitalize()} {self.last_name.capitalize()} {self.age()}yo'
+      age = self.age()
+      agestr = f'{self.age()}yo'
+      if age > 17:
+         agestr = 'Adult'
+      elif age > 12:
+         agestr = 'Teen'
+      return f'{self.first_name.capitalize()} {self.last_name.capitalize()} ({agestr})'
 
 # this represents a single created car
 class RaceCar(models.Model):
