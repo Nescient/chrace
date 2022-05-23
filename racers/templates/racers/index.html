@@ -1,7 +1,7 @@
-{% if latest_tourney %}
+{% if all_cars %}
     <ul>
-    {% for car in latest_tourney %}
-        <li><a href="/racers/{{ car.id }}/times">{{ car.name }}</a></li>
+    {% for car in all_cars %}
+        <li><a href="{% url 'drivers:times' car.id %}"></a></li>
     {% endfor %}
     </ul>
 {% else %}
