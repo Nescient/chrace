@@ -1,0 +1,9 @@
+{% if latest_tourney %}
+    <ul>
+    {% for car in latest_tourney %}
+        <li><a href="/racers/{{ car.id }}/times">{{ car.name }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>Show all Racers here.</p>
+{% endif %}
