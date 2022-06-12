@@ -4,6 +4,9 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views import generic
+import logging
+from django.views.decorators.http import require_http_methods
+from django.apps import apps
 
 class IndexView(generic.ListView):
    template_name = 'tourneys/index.html'
@@ -12,23 +15,34 @@ class IndexView(generic.ListView):
    def get_queryset(self):
       return Tournament.objects.all()
 
-class DetailView(generic.DetailView):
+class RaceView(generic.DetailView):
    model = Race
    template_name = 'tourneys/races.html'
 
-class ResultsView(generic.DetailView):
+@require_http_methods(["GET", "POST"])
+def edit(request, pk):
+   tourney = get_object_or_404(Tournament)
+   RaceCar = apps.get_model('racers', 'RaceCar')
+   all_cars = RaceCar.objects.all()
+   context = {
+      'tourney' : tourney,
+      'all_cars': all_cars,
+   }
+   return render(request, 'tourneys/edit.html', context)
+
+class TourneyEditView(generic.DetailView):
    model = Tournament
-   template_name = 'tourneys/tourney.html'
+   template_name = 'tourneys/edit.html'
+   
+   def get_all_cars(self):
+      RaceCar = apps.get_model('racers', 'RaceCar')
+      return RaceCar.objects.all()
+
+class TourneyRunView(generic.DetailView):
+   model = Tournament
+   template_name = 'tourneys/run.html'
 
 def index(request):
-   all = Tournament.objects.all()
-   context = {'all': all}
+   latest_tourney_list = Tournament.objects.order_by('-date')[:5]
+   context = {'latest_tourney_list': latest_tourney_list}
    return render(request, 'tourneys/index.html', context)
-
-def races(request, race_id):
-   model = get_object_or_404(Race, pk=race_id)
-   return render(request, 'tourneys/races.html', {'race': model})
-
-def tourney(request, tourney_id):
-   model = get_object_or_404(Tournament, pk=tourney_id)
-   return render(request, 'tourneys/tourney.html', {'tourney': model})
