@@ -6,22 +6,17 @@
 <fieldset>
     <legend><h1>Cars for {{tourney}}</h1></legend>
     {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-    {% for car in racers.car.all %}
+    {% for car in my_cars %}
         <input type="radio" name="incar" id="incar{{ forloop.counter }}" value="{{ car.id }}">
         <label for="incar{{ forloop.counter }}">{{ car }}</label><br>
     {% endfor %}
-    {% for car in all_cars %}
+</fieldset>
+<fieldset>
+    <legend><h1>Other Cars</h1></legend>
+    {% for car in other_cars %}
        <input type="radio" name="outcar" id="outcar{{ forloop.counter }}" value="{{ car.id }}"> 
-        <label for="outcar{{ forloop.counter }}">{{ car }}</label><br>
+       <label for="outcar{{ forloop.counter }}">{{ car }}</label><br>
     {% endfor %}
 </fieldset>
 <input type="submit" value="Start">
 </form>
-
-
-{% for car in all_cars %}
-        <li>{{car}}</li>
-    {% endfor %}
-    
-    
-    

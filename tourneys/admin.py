@@ -1,7 +1,8 @@
 from django.contrib import admin
 
-from .models import Race, TimeTrial, Tournament
+from .models import Race, Registration, TimeTrial, Tournament
 
 admin.site.register(Race)
+admin.site.register(Registration)
 admin.site.register(TimeTrial)
 admin.site.register(Tournament)

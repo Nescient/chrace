@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404,render
-from .models import Race,Tournament
+from .models import Race,Tournament,Registration
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -22,12 +22,21 @@ class RaceView(generic.DetailView):
 @require_http_methods(["GET", "POST"])
 def edit(request, pk):
    tourney = get_object_or_404(Tournament)
+   my_cars = Registration.objects.filter(tourney_id=tourney.id)#.order_by('name')
+
+   my_cars_ids = []
+   for c in my_cars:
+      my_cars_ids.append(c.id)
+
    RaceCar = apps.get_model('racers', 'RaceCar')
-   all_cars = RaceCar.objects.all()
+   other_cars = RaceCar.objects.exclude(pk__in=my_cars_ids)
+
    context = {
       'tourney' : tourney,
-      'all_cars': all_cars,
+      'other_cars': other_cars,
+      'my_cars' : my_cars,
    }
+
    return render(request, 'tourneys/edit.html', context)
 
 class TourneyEditView(generic.DetailView):
