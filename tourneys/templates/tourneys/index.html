@@ -2,10 +2,12 @@
 
 <!--<link rel="stylesheet" type="text/css" href="{% static 'tourneys/style.css' %}">-->
 
+<h1>GBC Pinewood Derby Tournaments</h1>
+
 {% if all %}
     <ul>
     {% for tourney in all %}
-        <li><a href="{% url 'tourneyz:edit' tourney.id %}" /></li>
+        <li><a href="{% url 'tourneyz:edit' tourney.id %}">{{tourney}}</a></li>
     {% endfor %}
     </ul>
 {% else %}

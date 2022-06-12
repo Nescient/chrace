@@ -7,13 +7,16 @@ from django.views import generic
 import logging
 from django.views.decorators.http import require_http_methods
 from django.apps import apps
+from django.utils import timezone
 
 class IndexView(generic.ListView):
    template_name = 'tourneys/index.html'
    context_object_name = 'all'
 
    def get_queryset(self):
-      return Tournament.objects.all()
+      return Tournament.objects.filter(
+         date__lte=timezone.now()
+      ).order_by('-date')[:5]
 
 class RaceView(generic.DetailView):
    model = Race
