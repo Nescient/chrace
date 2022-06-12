@@ -1,21 +1,16 @@
-<h1>Tournament {{object.id}}</h1>
-<p>This is a paragraph.</p>
-<div>This is a div.</div>
+<h1>Tournament {{tourney.id}}</h1>
+<p>This Tournament is held on {{ tourney.date }}.<p>
 
-{{ pk_list }} is tournaments {{ tourney_list }} v {{ model_list }} c {{ context_list }} w {{ object }}
-
-This Tournament is held on {{ object.date }}
-
-<form action="{% url 'tourneyz:run' object.id %}" method="post">
+<form action="{% url 'tourneyz:run' tourney.id %}" method="post">
 {% csrf_token %}
 <fieldset>
-    <legend><h1>Cars for {{object}}</h1></legend>
+    <legend><h1>Cars for {{tourney}}</h1></legend>
     {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
     {% for car in racers.car.all %}
         <input type="radio" name="incar" id="incar{{ forloop.counter }}" value="{{ car.id }}">
         <label for="incar{{ forloop.counter }}">{{ car }}</label><br>
     {% endfor %}
-    {% for car in RaceCar.objects.all %}
+    {% for car in all_cars %}
        <input type="radio" name="outcar" id="outcar{{ forloop.counter }}" value="{{ car.id }}"> 
         <label for="outcar{{ forloop.counter }}">{{ car }}</label><br>
     {% endfor %}
@@ -24,8 +19,8 @@ This Tournament is held on {{ object.date }}
 </form>
 
 
-{% for car in object.all_cars %}
-        <li><a href="{% url 'tourneyz:edit' car.id %}" /></li>
+{% for car in all_cars %}
+        <li>{{car}}</li>
     {% endfor %}
     
     
