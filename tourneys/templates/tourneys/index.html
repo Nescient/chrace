@@ -5,7 +5,7 @@
 {% if all %}
     <ul>
     {% for tourney in all %}
-        <li><a href="{% url 'tourneyz:tourney' tourney.id %}" /></li>
+        <li><a href="{% url 'tourneyz:edit' tourney.id %}" /></li>
     {% endfor %}
     </ul>
 {% else %}
