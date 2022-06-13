@@ -1,4 +1,36 @@
 #! /usr/bin/python3
+import fcntl
+import os
+import sys
+
+# https://stackoverflow.com/a/384493
+def instance_already_running(label="default"):
+    """
+    Detect if an an instance with the label is already running, globally
+    at the operating system level.
+
+    Using `os.open` ensures that the file pointer won't be closed
+    by Python's garbage collector after the function's scope is exited.
+
+    The lock will be released when the program exits, or could be
+    released if the file pointer were closed.
+    """
+
+    lock_file_pointer = os.open(f"/tmp/instance_{label}.lock", os.O_WRONLY | os.O_CREAT)
+
+    try:
+        fcntl.lockf(lock_file_pointer, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        already_running = False
+    except IOError:
+        already_running = True
+
+    return already_running
+
+if instance_already_running():
+   print('This script is already running.  Wait for that to close.')
+   exit(1)
+
+##############################################################################################################
 from gpiozero import Button
 from signal import pause
 from threading import Barrier, Event
@@ -21,25 +53,15 @@ import time
 # pinout ----^
 
 # the default pin assignments for our track
-ALL_START_PIN = 2
-LANE1_MID_PIN = 3
-LANE2_MID_PIN = 4
-LANE3_MID_PIN = 17
-LANE4_MID_PIN = 27
-LANE1_END_PIN = 22
-LANE2_END_PIN = 10
-LANE3_END_PIN = 9
-LANE4_END_PIN = 11
-
-ALL_START = Button(ALL_START_PIN)
-#GPIO.setup(LANE1_MID_PIN, GPIO.IN)
-#GPIO.setup(LANE2_MID_PIN, GPIO.IN)
-#GPIO.setup(LANE3_MID_PIN, GPIO.IN)
-#GPIO.setup(LANE4_MID_PIN, GPIO.IN)
-LANE1_END = Button(LANE1_END_PIN)
-LANE2_END = Button(LANE2_END_PIN)
-LANE3_END = Button(LANE3_END_PIN)
-LANE4_END = Button(LANE4_END_PIN)
+ALL_START = Button(2)
+LANE1_MID = Button(7)
+LANE2_MID = Button(8)
+LANE3_MID = Button(9)
+LANE4_MID = Button(10)
+LANE1_END = Button(3)
+LANE2_END = Button(4)
+LANE3_END = Button(5)
+LANE4_END = Button(6)
 
 # b = Barrier(4, timeout=60.0)
 done = [ Event(), Event(), Event(), Event() ]
