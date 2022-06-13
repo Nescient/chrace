@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404,render
-from .models import Race,Tournament,Registration
+from .models import Race,Tournament,Registration,TimeTrial
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -24,7 +24,7 @@ class RaceView(generic.DetailView):
 
 @require_http_methods(["GET", "POST"])
 def edit(request, pk):
-   tourney = get_object_or_404(Tournament)
+   tourney = get_object_or_404(Tournament, pk=pk)
    my_cars = Registration.objects.filter(tourney_id=tourney.id)#.order_by('name')
 
    my_cars_ids = []
@@ -42,19 +42,31 @@ def edit(request, pk):
 
    return render(request, 'tourneys/edit.html', context)
 
-class TourneyEditView(generic.DetailView):
-   model = Tournament
-   template_name = 'tourneys/edit.html'
+@require_http_methods(["GET", "POST"])
+def run(request, pk):
+   tourney = get_object_or_404(Tournament, pk=pk)
+   my_cars = Registration.objects.filter(tourney_id=tourney.id)
+   my_races = Race.objects.filter(tourney_id=tourney.id)
    
-   def get_all_cars(self):
-      RaceCar = apps.get_model('racers', 'RaceCar')
-      return RaceCar.objects.all()
+   if request.method == 'POST' and not my_races:
+      # create new races based on registered cars
+      print('go')
 
-class TourneyRunView(generic.DetailView):
-   model = Tournament
-   template_name = 'tourneys/run.html'
+   my_cars_ids = []
+   for c in my_cars:
+      my_cars_ids.append(c.id)
 
-def index(request):
-   latest_tourney_list = Tournament.objects.order_by('-date')[:5]
-   context = {'latest_tourney_list': latest_tourney_list}
-   return render(request, 'tourneys/index.html', context)
+   RaceCar = apps.get_model('racers', 'RaceCar')
+   other_cars = RaceCar.objects.exclude(pk__in=my_cars_ids)
+
+   if request.method == 'POST':
+      # get ready to rumble
+      print('go')
+
+   context = {
+      'tourney' : tourney,
+      'my_cars' : my_cars,
+      'my_races' : my_races,
+   }
+
+   return render(request, 'tourneys/run.html', context)

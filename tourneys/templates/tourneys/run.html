@@ -1,15 +1,20 @@
-{{ pk_list }} is tournaments {{ tourney_list }} v {{ model_list }} c {{ context_list }} w {{ object }}
-This Tournament is held on {{ object.date }}
+<h1>Tournament {{tourney.id}}</h1>
+<p>This Tournament is held on {{ tourney.date }}.<p>
 
-<form action="{% url 'tourneyz:race' question.id %}" method="post">
-{% csrf_token %}
-<fieldset>
-    <legend><h1>{{ question.question_text }}</h1></legend>
-    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-    {% for choice in question.choice_set.all %}
-        <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">
-        <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br>
+{% if my_cars %}
+
+{% if my_races %}
+
+    <ul>
+    {% for r in my_races %}
+        <li>{{ r }}</li>
     {% endfor %}
-</fieldset>
-<input type="submit" value="Vote">
-</form>
+    </ul>
+
+{% else %}
+    <p>There are NO races generated for this event.  Oops :(</p>
+{% endif %}
+
+{% else %}
+    <p>There are no cars registered for this event.  <a href="{% url 'tourneyz:edit' tourney.id %}">Please add some racers!.</a></p>
+{% endif %}
