@@ -1,7 +1,19 @@
+{% load static %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'racers/style.css' %}">
+
 {% if all_cars %}
     <ul>
     {% for car in all_cars %}
-        <li><a href="{% url 'drivers:times' car.id %}"></a></li>
+        <li><a href="{% url 'racerz:times' car.id %}">
+        <div class="card">
+           <img src="{% static 'racers/images/boogers.png' %}" alt="Avatar" style="height:100px">
+           <div class="container">
+    <h4><b>{{ car.name }}</b></h4>
+    <p>{{ car.driver.first_name }}</p>
+  </div>
+</div>
+        </a></li>
     {% endfor %}
     </ul>
 {% else %}
