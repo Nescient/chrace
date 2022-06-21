@@ -50,7 +50,7 @@ class Registration(models.Model):
 class Race(models.Model):
    tourney = models.ForeignKey(Tournament, on_delete=models.CASCADE)
    start_time = models.TimeField(null=True, blank=True)
-   racers = models.ManyToManyField('racers.RaceCar', through='TimeTrial')
+   racers = models.ManyToManyField('racers.RaceCar', through='TimeTrial', related_name='races')
    
    # pretty print this object
    def __str__(self):
@@ -62,6 +62,7 @@ class Race(models.Model):
       for t in trials:
          if t.lane == lane:
             t.end_time = time
+      return
 
 # a single car and it's time in a single race
 class TimeTrial(models.Model):
