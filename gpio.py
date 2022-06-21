@@ -54,18 +54,18 @@ import time
 
 # the default pin assignments for our track
 ALL_START = Button(2)
-LANE1_MID = Button(7)
-LANE2_MID = Button(8)
-LANE3_MID = Button(9)
-LANE4_MID = Button(10)
+#LANE1_MID = Button(7)
+#LANE2_MID = Button(8)
+#LANE3_MID = Button(9)
+#LANE4_MID = Button(10)
 LANE1_END = Button(3)
 LANE2_END = Button(4)
-LANE3_END = Button(5)
-LANE4_END = Button(6)
+LANE3_END = Button(17)
+LANE4_END = Button(27)
 
 # b = Barrier(4, timeout=60.0)
 done = [ Event(), Event(), Event(), Event() ]
-
+a = 0
 def lane1_end():
    et = time.time_ns()
    print(f'lane1 {et}')
@@ -74,7 +74,9 @@ def lane1_end():
 
 def lane2_end():
    et = time.time_ns()
+   a = et-start_time
    print(f'lane2 {et}')
+   print(f'{a/(10 ** 9)}')
    done[1].set()
    return;
 
@@ -101,7 +103,7 @@ ALL_START.wait_for_press()
 start_time = time.time_ns()
 print(f'GO {start_time}')
 
-hard_stop_time = (start_time / (10 ** 9)) + 5.0
+hard_stop_time = (start_time / (10 ** 9)) + 15.0
 for e in done:
    now = time.time_ns() / (10 ** 9)
    if now < hard_stop_time:
@@ -111,3 +113,6 @@ for e in done:
       print('Timed out waiting for finish!')
 
 print('Done')
+
+b = a - start_time
+print(f'{b / (10 ** 9)}')
