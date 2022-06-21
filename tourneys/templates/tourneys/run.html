@@ -2,12 +2,23 @@
 <p>This Tournament is held on {{ tourney.date }}.<p>
 
 {% if my_cars %}
+<h2>Participating Cars</h2>
+<ul>
+   {% for c in my_cars %}
+      <li>{{ c }}</li>
+   {% endfor %}
+</ul>
 
 {% if my_races %}
-
+<h2>Races</h2>
     <ul>
     {% for r in my_races %}
         <li>{{ r }}</li>
+        <ul>
+        {% for c in my_races.racers %}
+        <li>{{ c }}</li>
+        {% endfor %}
+        </ul>
     {% endfor %}
     </ul>
 
