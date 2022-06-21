@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import transaction
 
 # this represents a set of races and register cars
 class Tournament(models.Model):
@@ -10,14 +11,31 @@ class Tournament(models.Model):
    # the registered cars for the tournament
    registered_cars = models.ManyToManyField('racers.RaceCar', through='Registration')
    
-   #first = models.ForeignKey('racers.Driver', on_delete=models.CASCADE)
-   #second = models.ForeignKey('racers.Driver', on_delete=models.CASCADE)
-   #third = models.ForeignKey('racers.Driver', on_delete=models.CASCADE)
-   
+   # only one tournament can be active at a time
+   active = models.BooleanField(default=False)
+
+   # the pretty print string for this object   
    def __str__(self):
       return f'Tournament {self.id} on {self.date}'
    
-   def first(self):
+   # sets this tournament as active
+   @transaction.atomic
+   def activate(self):
+      if not self.active:
+         self.active = True
+         return True
+      return False
+
+   # sets this tournament as inactive
+   @transaction.atomic
+   def deactivate(self):
+      if self.active:
+         self.active = False
+         return True
+      return False
+   
+   # gets the results of this tournament
+   def results(self):
       return 0
 
 # a single car and the tournament it participates in
@@ -34,8 +52,16 @@ class Race(models.Model):
    start_time = models.TimeField(null=True, blank=True)
    racers = models.ManyToManyField('racers.RaceCar', through='TimeTrial')
    
+   # pretty print this object
    def __str__(self):
       return f'Race {self.id} from {self.tourney}'
+
+   # set the time for a given lane of this race
+   def set_lane_time(self, lane, time):
+      trials = TimeTrial.objects.filter(race_id=self.id)
+      for t in trials:
+         if t.lane == lane:
+            t.end_time = time
 
 # a single car and it's time in a single race
 class TimeTrial(models.Model):
@@ -46,8 +72,7 @@ class TimeTrial(models.Model):
                                  MaxValueValidator(MAX_LANES),
                                  MinValueValidator(1)
                               ])
-   #mid_time_ns = models.IntegerField()
-   #end_time_ns = models.IntegerField()
+   mid_time = models.TimeField(null=True, blank=True)
    end_time = models.TimeField(null=True, blank=True)
    
    # get the average miles per hour
@@ -62,6 +87,7 @@ class TimeTrial(models.Model):
       delta = self.race.start_time - self.end_time
       return delta.total_seconds()
    
+   # pretty print this object
    def __str__(self):
       et = self.et()
       et_str = '{self.et():.3f}' if et >= 0 else '?'
