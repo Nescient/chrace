@@ -11,6 +11,7 @@
         <label for="incar{{ forloop.counter }}">{{ car }}</label><br>
     {% endfor %}
 </fieldset>
+{% if other_cars %}
 <fieldset>
     <legend><h1>Other Cars</h1></legend>
     {% for car in other_cars %}
@@ -18,5 +19,6 @@
        <label for="outcar{{ forloop.counter }}">{{ car }}</label><br>
     {% endfor %}
 </fieldset>
+{% endif %}
 <input type="submit" value="Start">
 </form>
