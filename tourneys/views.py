@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404,render
 from .models import Race,Tournament,Registration,TimeTrial
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views import generic
@@ -9,6 +9,7 @@ from django.views.decorators.http import require_http_methods
 from django.apps import apps
 from django.utils import timezone
 from collections import deque
+import json
 
 class IndexView(generic.ListView):
    template_name = 'tourneys/index.html'
@@ -26,7 +27,7 @@ class RaceView(generic.DetailView):
 @require_http_methods(["GET", "POST"])
 def edit(request, pk):
    tourney = get_object_or_404(Tournament, pk=pk)
-   my_cars = Registration.objects.filter(tourney_id=tourney.id)#.order_by('name')
+   my_cars = tourney.registered_cars.all()
 
    my_cars_ids = []
    for c in my_cars:
@@ -48,6 +49,7 @@ def run(request, pk):
    tourney = get_object_or_404(Tournament, pk=pk)
    my_cars = tourney.registered_cars.all()
    my_races = Race.objects.filter(tourney_id=tourney.id).order_by('id')
+   live_race = next_race = None
    
    if request.method == 'POST' and not my_races:
       # create new races based on registered cars
@@ -66,21 +68,48 @@ def run(request, pk):
                a.popleft()
       my_races = Race.objects.filter(tourney_id=tourney.id).order_by('id')
 
-   if request.method == 'POST':
+   if request.GET.get('startracebtn') and request.GET.get('raceid'):
       # get ready to rumble
-      print('go')
-      for r in my_races:
-         print(r)
-         print(r.racers.all())
-         if not r.start_time:
-            import os
-            os.system(f'python3 /home/pi/chrace/gpio.py {r.id} &')
-            break
+      raceid = request.GET.get('raceid')
+      live_race = int(raceid)
+      print(f'Starting Race {raceid}')
+      import os
+      os.system(f'python3 /home/pi/chrace/gpio.py {raceid} &')
+   else:
+       for r in my_races:
+          if not r.start_time:
+             next_race = r.id
+             break
+
 
    context = {
       'tourney' : tourney,
       'my_cars' : my_cars,
       'my_races' : my_races,
+      'live_race' : live_race,
+      'next_race' : next_race,
    }
 
    return render(request, 'tourneys/run.html', context)
+
+def race_result(request):
+   # request.is_ajax() is deprecated since django 3.1
+   is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+   print(f'is ajax {is_ajax}')
+   if is_ajax:
+      if request.method == 'POST':
+         data = json.load(request)
+         raceid = data.get('raceid')
+         race = get_object_or_404(Race, pk=raceid)
+         trials = TimeTrial.objects.filter(race_id=race.id).order_by('lane')
+         context = {
+            'start_time' : race.start_time,
+            'lane1' : trials[0].et(),
+            'lane2' : trials[1].et(),
+            'lane3' : trials[2].et(),
+            'lane4' : trials[3].et(),
+         }
+         return JsonResponse(context)
+      return JsonResponse({'status': 'Invalid request'}, status=400)
+   else:
+      return HttpResponseBadRequest('Invalid request')

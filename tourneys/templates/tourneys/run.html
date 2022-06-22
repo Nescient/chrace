@@ -16,21 +16,89 @@
         <li>
            <div style="display: flex;">
               <p>{{ r }}</p>
+              {% if live_race == r.id %}
               {% if not r.start_time %}
+              <p style="margin: 13 13 13 13" id="count_down_p"></p>
+              <script>
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";");
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      // Does this cookie string begin with the name we want?
+      if (cookie.substring(0, name.length + 1) === (name + "=")) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+function getResults(onData) {
+fetch("/tourneys/race_result", {
+  method: "POST",
+  credentials: "same-origin",
+  headers: {
+    "X-Requested-With": "XMLHttpRequest",
+    "X-CSRFToken": getCookie("csrftoken"),
+  },
+  body: JSON.stringify({raceid: "{{r.id}}"})
+})
+.then(response => response.json())
+.then(data => {
+  if (onData) {
+     onData(data);
+  }
+});
+}
+
+// Set the date we're counting down to
+var wait_for = 15;
+document.getElementById("count_down_p").innerHTML = wait_for;
+
+// Update the count down every 1 second
+var x = setInterval(function() {
+
+  if (wait_for > 0) {
+     wait_for = wait_for - 1;
+     document.getElementById("count_down_p").innerHTML = wait_for;
+  }
+  else {
+     document.getElementById("count_down_p").innerHTML = "GO!";
+     clearInterval(x);
+     var y = setInterval(function() {
+       getResults(function(data) {
+          console.log(data);
+          if (data.start_time) {
+             clearInterval(y);
+             location.reload(); 
+          }
+       });
+    }, 1000);
+  }
+}, 1000);
+
+</script>
+              {% endif %}
+              {% endif %}
+              {% if next_race == r.id %}
               <form action="#" method="get" style="margin: 13 13 13 13">
                  <input type="hidden" value="{{r.id}}" name="raceid" id="raceid" size="1" />
                  <input type="submit" class="btn" value="Start Race" name="startracebtn" id="startracebtn">
               </form>
-              {% else %}
+              {% elif r.start_time %}
               <p>Started at {{r.start_time}}</p>
               {% endif %}
            </div>
         </li>
-        <ul>
+        <ol>
         {% for c in r.racers.all %}
         <li>{{ c }}</li>
         {% endfor %}
-        </ul>
+        </ol>
     {% endfor %}
     </ul>
 
