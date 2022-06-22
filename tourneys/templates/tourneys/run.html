@@ -13,9 +13,21 @@
 <h2>Races</h2>
     <ul>
     {% for r in my_races %}
-        <li>{{ r }}</li>
+        <li>
+           <div style="display: flex;">
+              <p>{{ r }}</p>
+              {% if not r.start_time %}
+              <form action="#" method="get" style="margin: 13 13 13 13">
+                 <input type="hidden" value="{{r.id}}" name="raceid" id="raceid" size="1" />
+                 <input type="submit" class="btn" value="Start Race" name="startracebtn" id="startracebtn">
+              </form>
+              {% else %}
+              <p>Started at {{r.start_time}}</p>
+              {% endif %}
+           </div>
+        </li>
         <ul>
-        {% for c in my_races.racers %}
+        {% for c in r.racers.all %}
         <li>{{ c }}</li>
         {% endfor %}
         </ul>
