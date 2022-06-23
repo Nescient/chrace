@@ -70,12 +70,7 @@ def twiddle_buttons(buttons):
       b.pin.drive_high()
    return
 
-def start_race(debug):
-   pihw.LANE1_END.when_pressed = lane1_end
-   pihw.LANE2_END.when_pressed = lane2_end
-   pihw.LANE3_END.when_pressed = lane3_end
-   pihw.LANE4_END.when_pressed = lane4_end
-
+def start_race(debug, race):
    # blocks until the start button goes
    print('Waiting for start')
    if debug:
@@ -84,10 +79,22 @@ def start_race(debug):
       ALL_START.wait_for_press()
    start_time = time.time_ns()
    print(f'GO GO {start_time}')
+   
    times[0] = start_time
    times[1] = start_time
    times[2] = start_time
    times[3] = start_time
+   
+   # set the race start time
+   if race:
+      race.start_time = make_aware(datetime.fromtimestamp(start_time / (1e9)))
+      race.save()
+   
+   # arm the lanes
+   pihw.LANE1_END.when_pressed = lane1_end
+   pihw.LANE2_END.when_pressed = lane2_end
+   pihw.LANE3_END.when_pressed = lane3_end
+   pihw.LANE4_END.when_pressed = lane4_end
 
    if debug:
       twiddle_buttons([pihw.LANE1_END, pihw.LANE2_END, pihw.LANE3_END, pihw.LANE4_END])
@@ -108,6 +115,12 @@ def finish_race(race, start, times):
       print(f'lane{i + 1} {(t - start)/(10 ** 9)}')
    if race:
       print(f'Setting lane times for {race}')
+      #race.set_lane_time(1, times[0])
+      #race.set_lane_time(2, times[1])
+      #race.set_lane_time(3, times[2])
+      #race.set_lane_time(4, times[3])
+      # race.start_time = make_aware(datetime.fromtimestamp(start_time / (1e9)))
+      # race.save()
 
 if __name__ == "__main__":
    if instance_already_running():
@@ -141,8 +154,10 @@ if __name__ == "__main__":
       print(f'Starting Race {sys.argv[1]}')
       import chrace.asgi
       from django.apps import apps
+      from datetime import datetime
+      from django.utils.timezone import make_aware
       Race = apps.get_model('tourneys', 'Race')
       CFG_RACE = Race.objects.get(id=sys.argv[1])
 
-   start_time, times = start_race(CFG_DEBUG)
+   start_time, times = start_race(CFG_DEBUG, CFG_RACE)
    finish_race(CFG_RACE, start_time, times)

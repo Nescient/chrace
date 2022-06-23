@@ -1,6 +1,8 @@
 <h1>Tournament {{tourney.id}}</h1>
 <p>This Tournament is held on {{ tourney.date }}.<p>
 
+{% load tz %}
+
 {% if my_cars %}
 <h2>Participating Cars</h2>
 <ul>
@@ -90,14 +92,22 @@ var x = setInterval(function() {
                  <input type="submit" class="btn" value="Start Race" name="startracebtn" id="startracebtn">
               </form>
               {% elif r.start_time %}
-              <p>Started at {{r.start_time}}</p>
+              {% localtime on %}
+              <p>: Started at {{r.start_time.time}} <a href="{% url 'tourneyz:run' tourney.id %}">Refresh</a></p>
+              {% endlocaltime %}
               {% endif %}
            </div>
         </li>
         <ol>
+        {% if r.start_time %}
+        {% for c in r.trials %}
+        <li>{{ c }}</li>
+        {% endfor %}
+        {% else %}
         {% for c in r.racers.all %}
         <li>{{ c }}</li>
         {% endfor %}
+        {% endif %}
         </ol>
     {% endfor %}
     </ul>

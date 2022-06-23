@@ -49,12 +49,20 @@ class Registration(models.Model):
 # four cars go down the track, 1 winner is a fact
 class Race(models.Model):
    tourney = models.ForeignKey(Tournament, on_delete=models.CASCADE)
-   start_time = models.TimeField(null=True, blank=True)
+   start_time = models.DateTimeField(null=True, blank=True)
    racers = models.ManyToManyField('racers.RaceCar', through='TimeTrial', related_name='races')
    
    # pretty print this object
    def __str__(self):
       return f'Race {self.id} from {self.tourney}'
+      
+   # set the time for all lanes of a race
+   def set_lane_times(self, times):
+      trials = TimeTrial.objects.filter(race_id=self.id).order_by('lane')
+      for i, t in enumerate(trials):
+         if i < len(times):
+            t.end_time = times[i] 
+      return
 
    # set the time for a given lane of this race
    def set_lane_time(self, lane, time):
@@ -63,6 +71,21 @@ class Race(models.Model):
          if t.lane == lane:
             t.end_time = time
       return
+   
+   # get an elapsed time since the start of the race
+   @property
+   def et(self):
+      if self.start_time:
+         return (timezone.now() - self.start_time)
+      return -1
+
+   @property
+   def trials(self):
+      trials = TimeTrial.objects.filter(race_id=self.id).order_by('lane')
+      if len(trials) == 4:
+         if trials[0].end_time and trials[1].end_time and trials[2].end_time and trials[3].end_time:
+            return TimeTrial.objects.filter(race_id=self.id).order_by('end_time')
+      return trials
 
 # a single car and it's time in a single race
 class TimeTrial(models.Model):
@@ -73,6 +96,10 @@ class TimeTrial(models.Model):
                                  MaxValueValidator(MAX_LANES),
                                  MinValueValidator(1)
                               ])
+   #rank = models.IntegerField(validators=[
+   #                              MaxValueValidator(MAX_LANES),
+   #                              MinValueValidator(1)
+   #                           ])
    mid_time = models.TimeField(null=True, blank=True)
    end_time = models.TimeField(null=True, blank=True)
    
