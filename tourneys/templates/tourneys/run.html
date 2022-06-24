@@ -6,11 +6,31 @@
 {% if my_cars %}
 <h2>Participating Cars</h2>
 {% if not next_race and results %}
+<script>
+function showResults() {
+  var x = document.getElementById("resultsdiv");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+    document.getElementById("resultsBtn").innerHTML = "Hide Results";
+  } else {
+    x.style.display = "none";
+    document.getElementById("resultsBtn").innerHTML = "Show Results";
+  }
+}
+</script>
+<button id="resultsBtn" onclick="showResults()">Show Results</button>
+<div id="resultsdiv" style="display: none">
 <ol>
    {% for c in results %}
-      <li><p>{{ c.0 }} with average Elapsed Time of {{ c.1 }} seconds.</li>
+      <li>
+      <p>{{ c.0 }} with average Elapsed Time of {{ c.1 }} seconds.</p>
+      {% if forloop.counter < 4 %}
+      <p>Congratulations {{c.0.driver.first_name.capitalize}}!</p>
+      {% endif %}
+      </li>
    {% endfor %}
 </ol>
+</div>
 {% else %}
 <ul>
    {% for c in my_cars %}
@@ -108,15 +128,9 @@ var x = setInterval(function() {
            </div>
         </li>
         <ol>
-        {% if r.start_time > 0 %}
         {% for c in r.trials %}
         <li>{{ c }}</li>
         {% endfor %}
-        {% else %}
-        {% for c in r.racers_by_lane %}
-        <li>{{ c }}</li>
-        {% endfor %}
-        {% endif %}
         </ol>
     {% endfor %}
     </ul>

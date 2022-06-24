@@ -154,5 +154,6 @@ class TimeTrial(models.Model):
    # pretty print this object
    def __str__(self):
       et = self.et()
-      et_str = f'{self.et():.3f}' if et > 0 else '?'
-      return f'{self.car} with ET: {et_str}'
+      if et > 0:
+         return f'[{self.car.id}]{self.car} with ET: {et:.3f}'
+      return f'Lane {self.lane}: [{self.car.id}]{self.car}'

@@ -11,6 +11,8 @@ from django.utils import timezone
 from collections import deque
 import json
 
+MAX_LANES = 4
+
 class IndexView(generic.ListView):
    template_name = 'tourneys/index.html'
    context_object_name = 'all'
@@ -59,12 +61,16 @@ def run(request, pk):
          for a in lanes:
             a.append(c)
       for i,a in enumerate(lanes):
+         while len(a) < MAX_LANES:
+            a.append(None)
          a.rotate(i)
+      print(lanes)
       while len(lanes[0]) > 0 or len(lanes[1]) > 0 or len(lanes[2]) > 0 or len(lanes[3]) > 0:
          race = Race.objects.create(tourney=tourney)
          for i,a in enumerate(lanes):
             if len(a) > 0:
-               TimeTrial.objects.create(race=race,car=a[0],lane=i+1)
+               if a[0]:
+                  TimeTrial.objects.create(race=race,car=a[0],lane=i+1)
                a.popleft()
       my_races = Race.objects.filter(tourney_id=tourney.id).order_by('id')
 
@@ -107,10 +113,10 @@ def race_result(request):
          trials = TimeTrial.objects.filter(race_id=race.id).order_by('lane')
          context = {
             'start_time' : race.start_time,
-            'lane1' : trials[0].et(),
-            'lane2' : trials[1].et(),
-            'lane3' : trials[2].et(),
-            'lane4' : trials[3].et(),
+            #'lane1' : trials[0].et() if len(trials) > 0 else 0,
+            #'lane2' : trials[1].et() if len(trials) > 1 else 0,
+            #'lane3' : trials[2].et() if len(trials) > 2 else 0,
+            #'lane4' : trials[3].et() if len(trials) > 3 else 0,
          }
          return JsonResponse(context)
       return JsonResponse({'status': 'Invalid request'}, status=400)
