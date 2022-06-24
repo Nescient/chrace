@@ -62,7 +62,7 @@ def lane4_end(Button):
    return;
 
 def thread_run(button):
-   sleep(randint(1,5))
+   sleep(randint(1,15))
    button.pin.drive_low()
    button.pin.drive_high()
    button.pin.drive_low()
