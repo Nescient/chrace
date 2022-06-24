@@ -19,7 +19,7 @@
            <div style="display: flex;">
               <p>{{ r }}</p>
               {% if live_race == r.id %}
-              {% if not r.start_time %}
+              {% if r.start_time == 0 %}
               <p style="margin: 13 13 13 13" id="count_down_p"></p>
               <script>
 
@@ -74,9 +74,10 @@ var x = setInterval(function() {
      var y = setInterval(function() {
        getResults(function(data) {
           console.log(data);
-          if (data.start_time) {
+          if (data.start_time > 0) {
              clearInterval(y);
-             location.reload(); 
+             //location.reload();
+             window.location.href = "{% url 'tourneyz:run' tourney.id %}"; 
           }
        });
     }, 1000);
@@ -91,20 +92,20 @@ var x = setInterval(function() {
                  <input type="hidden" value="{{r.id}}" name="raceid" id="raceid" size="1" />
                  <input type="submit" class="btn" value="Start Race" name="startracebtn" id="startracebtn">
               </form>
-              {% elif r.start_time %}
+              {% elif r.start_time > 0 %}
               {% localtime on %}
-              <p>: Started at {{r.start_time.time}} <a href="{% url 'tourneyz:run' tourney.id %}">Refresh</a></p>
+              <p>: Started at {{r.time_of_start}} <a href="{% url 'tourneyz:run' tourney.id %}">Refresh</a></p>
               {% endlocaltime %}
               {% endif %}
            </div>
         </li>
         <ol>
-        {% if r.start_time %}
+        {% if r.start_time > 0 %}
         {% for c in r.trials %}
         <li>{{ c }}</li>
         {% endfor %}
         {% else %}
-        {% for c in r.racers.all %}
+        {% for c in r.racers_by_lane %}
         <li>{{ c }}</li>
         {% endfor %}
         {% endif %}

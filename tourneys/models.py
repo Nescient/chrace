@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import transaction
+from datetime import datetime
 
 # this represents a set of races and register cars
 class Tournament(models.Model):
@@ -49,7 +50,7 @@ class Registration(models.Model):
 # four cars go down the track, 1 winner is a fact
 class Race(models.Model):
    tourney = models.ForeignKey(Tournament, on_delete=models.CASCADE)
-   start_time = models.DateTimeField(null=True, blank=True)
+   start_time = models.BigIntegerField(default=0)
    racers = models.ManyToManyField('racers.RaceCar', through='TimeTrial', related_name='races')
    
    # pretty print this object
@@ -58,10 +59,12 @@ class Race(models.Model):
       
    # set the time for all lanes of a race
    def set_lane_times(self, times):
+      print(f'setting lane times {times}')
       trials = TimeTrial.objects.filter(race_id=self.id).order_by('lane')
       for i, t in enumerate(trials):
          if i < len(times):
-            t.end_time = times[i] 
+            t.end_time = times[i]
+            t.save() 
       return
 
    # set the time for a given lane of this race
@@ -71,6 +74,14 @@ class Race(models.Model):
          if t.lane == lane:
             t.end_time = time
       return
+   
+   # get the start time as a time
+   @property
+   def time_of_start(self):
+      if self.start_time == 0:
+         return '?'
+      else:
+         return timezone.make_aware(datetime.fromtimestamp(self.start_time / (1e9))).time()
    
    # get an elapsed time since the start of the race
    @property
@@ -87,6 +98,10 @@ class Race(models.Model):
             return TimeTrial.objects.filter(race_id=self.id).order_by('end_time')
       return trials
 
+   @property
+   def racers_by_lane(self):
+      return self.racers.order_by('timetrial__lane')
+
 # a single car and it's time in a single race
 class TimeTrial(models.Model):
    MAX_LANES = 4
@@ -100,8 +115,8 @@ class TimeTrial(models.Model):
    #                              MaxValueValidator(MAX_LANES),
    #                              MinValueValidator(1)
    #                           ])
-   mid_time = models.TimeField(null=True, blank=True)
-   end_time = models.TimeField(null=True, blank=True)
+   mid_time = models.BigIntegerField(default=0)
+   end_time = models.BigIntegerField(default=0)
    
    # get the average miles per hour
    def mph(self):
@@ -110,13 +125,11 @@ class TimeTrial(models.Model):
    
    # get the elapsed time at the finish line
    def et(self):
-      if not self.race.start_time or not self.end_time:
-         return -1
-      delta = self.race.start_time - self.end_time
-      return delta.total_seconds()
+      delta = self.end_time - self.race.start_time
+      return delta / 1e9
    
    # pretty print this object
    def __str__(self):
       et = self.et()
-      et_str = '{self.et():.3f}' if et >= 0 else '?'
+      et_str = f'{self.et():.3f}' if et > 0 else '?'
       return f'{self.car} with ET: {et_str}'

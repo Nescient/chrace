@@ -25,8 +25,8 @@ def instance_already_running(label="default"):
     return already_running
 
 ##############################################################################################################
-from threading import Event
-done = [ Event(), Event(), Event(), Event() ]
+import threading
+done = [ threading.Event(), threading.Event(), threading.Event(), threading.Event() ]
 times = [ 0, 0, 0, 0]
 
 def lane1_end(Button):
@@ -60,14 +60,19 @@ def lane4_end(Button):
    times[3] = et
    done[3].set()
    return;
-   
+
+def thread_run(button):
+   sleep(randint(1,5))
+   button.pin.drive_low()
+   button.pin.drive_high()
+   button.pin.drive_low()
+   button.pin.drive_high()
+   return
+
+
 def twiddle_buttons(buttons):
    for b in buttons:
-      sleep(randint(1,5))
-      b.pin.drive_low()
-      b.pin.drive_high()
-      b.pin.drive_low()
-      b.pin.drive_high()
+      threading.Thread(target=thread_run, args=([b]), daemon=True).start()
    return
 
 def start_race(debug, race):
@@ -87,7 +92,7 @@ def start_race(debug, race):
    
    # set the race start time
    if race:
-      race.start_time = make_aware(datetime.fromtimestamp(start_time / (1e9)))
+      race.start_time = start_time
       race.save()
    
    # arm the lanes
@@ -115,12 +120,14 @@ def finish_race(race, start, times):
       print(f'lane{i + 1} {(t - start)/(10 ** 9)}')
    if race:
       print(f'Setting lane times for {race}')
+      race.set_lane_times(times)
+      #race.save()
       #race.set_lane_time(1, times[0])
       #race.set_lane_time(2, times[1])
       #race.set_lane_time(3, times[2])
       #race.set_lane_time(4, times[3])
       # race.start_time = make_aware(datetime.fromtimestamp(start_time / (1e9)))
-      # race.save()
+     # race.save()
 
 if __name__ == "__main__":
    if instance_already_running():
@@ -160,4 +167,5 @@ if __name__ == "__main__":
       CFG_RACE = Race.objects.get(id=sys.argv[1])
 
    start_time, times = start_race(CFG_DEBUG, CFG_RACE)
+   CFG_RACE = Race.objects.get(id=sys.argv[1])
    finish_race(CFG_RACE, start_time, times)
