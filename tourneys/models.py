@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import transaction
 from datetime import datetime
+from operator import itemgetter
 
 # this represents a set of races and register cars
 class Tournament(models.Model):
@@ -34,10 +35,32 @@ class Tournament(models.Model):
          self.active = False
          return True
       return False
+
+   # find the right car
+   def car_index(self, cars, car):
+      for i, c in enumerate(cars):
+         if c[0].id == car.id:
+            return i
+      return -1
    
    # gets the results of this tournament
    def results(self):
-      return 0
+      races = Race.objects.filter(tourney_id=self.id)
+      reg_cars = self.registered_cars.all()
+      car_results = []
+      for c in reg_cars:
+         car_results.append([c, 0, 0])
+      for r in races:
+         for t in r.trials:
+            #[ (car, et, cnt) for car, et, count in cars if car.id  == t.car.id ]
+            index = self.car_index(car_results, t.car)
+            if index > -1:
+               car_results[index][1] += t.et()
+               car_results[index][2] += 1
+      car_ets = []
+      for c in car_results:
+         car_ets.append([c[0], c[1]/c[2] if c[2] > 0 else 1000])
+      return sorted(car_ets, key=itemgetter(1))
 
 # a single car and the tournament it participates in
 class Registration(models.Model):
@@ -74,7 +97,7 @@ class Race(models.Model):
          if t.lane == lane:
             t.end_time = time
       return
-   
+
    # get the start time as a time
    @property
    def time_of_start(self):

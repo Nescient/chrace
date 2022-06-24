@@ -49,7 +49,7 @@ def run(request, pk):
    tourney = get_object_or_404(Tournament, pk=pk)
    my_cars = tourney.registered_cars.all()
    my_races = Race.objects.filter(tourney_id=tourney.id).order_by('id')
-   live_race = next_race = None
+   live_race = next_race = tourney_results = None
    
    if request.method == 'POST' and not my_races:
       # create new races based on registered cars
@@ -81,13 +81,16 @@ def run(request, pk):
              next_race = r.id
              break
 
-
+   if not next_race:
+      tourney_results = tourney.results()
+   
    context = {
       'tourney' : tourney,
       'my_cars' : my_cars,
       'my_races' : my_races,
       'live_race' : live_race,
       'next_race' : next_race,
+      'results' : tourney_results
    }
 
    return render(request, 'tourneys/run.html', context)

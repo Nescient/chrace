@@ -5,11 +5,19 @@
 
 {% if my_cars %}
 <h2>Participating Cars</h2>
+{% if not next_race and results %}
+<ol>
+   {% for c in results %}
+      <li><p>{{ c.0 }} with average Elapsed Time of {{ c.1 }} seconds.</li>
+   {% endfor %}
+</ol>
+{% else %}
 <ul>
    {% for c in my_cars %}
       <li>{{ c }}</li>
    {% endfor %}
 </ul>
+{% endif %}
 
 {% if my_races %}
 <h2>Races</h2>
